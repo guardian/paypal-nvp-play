@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "sass": "sass --update app/assets/stylesheets:public/stylesheets"
+    "sass": "sass --update app/assets/stylesheets:public/stylesheets",
+    "webpack": "webpack --config webpack.conf.js"
   },
   "author": "Ap0c",
   "license": "ISC",
