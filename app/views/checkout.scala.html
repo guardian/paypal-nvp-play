@@ -1,3 +1,25 @@
 @main(title = "Checkout") {
-	<p>Hello World!</p>	
+	<main>
+		<form action="POST">
+			<label for="first-name">First Name</label>
+			<input type="text" id="first-name" placeholder="First Name">
+			<label for="last-name">Last Name</label>
+			<input type="text" id="last-name" placeholder="Last Name">
+			<hr>
+			<label for="address-one">Address Line One</label>
+			<input type="text" id="address-one" placeholder="Address Line One">
+			<label for="address-two">Address Line Two</label>
+			<input type="text" id="address-two" placeholder="Address Line Two">
+			<label for="town">Town</label>
+			<input type="text" id="town" placeholder="Town">
+			<label for="country">Country</label>
+			<input type="text" id="country" placeholder="Country">
+			<label for="postcode">Postcode</label>
+			<input type="text" id="postcode" placeholder="Postcode">
+		</form>
+		<section id="buttons">
+			<button>Credit/Debit Card</button>
+			<div id="paypal-button"></div>
+		</section>
+	</main>
 }
