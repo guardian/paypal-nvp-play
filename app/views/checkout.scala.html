@@ -1,4 +1,8 @@
-@main(title = "Checkout") {
+@styles = {
+	<link rel="stylesheet" href="@routes.Assets.at("stylesheets/checkout.css")">
+}
+
+@main(title = "Checkout", styles) {
 	<main>
 		<form action="POST">
 			<label for="first-name">First Name</label>

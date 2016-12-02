@@ -1,6 +1,7 @@
 # ----- General Routes ----- #
 
 GET    /    controllers.Application.checkout
+GET    /assets/*file    controllers.Assets.at(path="/public", file)
 
 
 # ----- Paypal ----- #
