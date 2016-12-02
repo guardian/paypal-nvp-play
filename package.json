@@ -1,0 +1,12 @@
+{
+  "name": "paypal-nvp-scala",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "sass": "sass --update app/assets/stylesheets:public/stylesheets"
+  },
+  "author": "Ap0c",
+  "license": "ISC"
+}
