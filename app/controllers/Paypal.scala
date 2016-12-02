@@ -1,20 +1,14 @@
 package controllers
 
-import play.api.mvc.{Controller, Action}
+import play.api.mvc.{Controller}
 
 class Paypal extends Controller {
 
 	def setupPayment (amount: String,
 		currency: String,
 		returnUrl: String,
-		cancelUrl: String) = Action {
+		cancelUrl: String) = TODO
 
-		Ok("Setup Payment")
-
-	}
-
-	def createAgreement (token: String) = Action {
-		Ok("Create Agreement")
-	}
+	def createAgreement (token: String) = TODO
 
 }
