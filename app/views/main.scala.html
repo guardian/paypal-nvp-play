@@ -1,4 +1,4 @@
-@(title: String, styles: Html = Html(""))(content: Html)
+@(title: String, styles: Html = Html(""), scripts: Html = Html(""))(content: Html)
 
 <!DOCTYPE html>
 <html>
@@ -7,5 +7,8 @@
 	<title>@title</title>
 	@styles
 </head>
-<body>@content</body>
+<body>
+	@content
+	@scripts
+</body>
 </html>
