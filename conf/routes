@@ -1,1 +1,9 @@
-GET    /    controllers.Application.helloWorld
+# ----- General Routes ----- #
+
+GET    /    controllers.Application.checkout
+
+
+# ----- Paypal ----- #
+
+POST    /setup-payment    controllers.Paypal.setupPayment(amount, currency, returnUrl, cancelUrl)
+POST    /create-agreement    controllers.Paypal.createAgreement(token)

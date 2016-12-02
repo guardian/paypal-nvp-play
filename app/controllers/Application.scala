@@ -4,8 +4,8 @@ import play.api.mvc.{Controller, Action}
 
 class Application extends Controller {
 
-	def helloWorld = Action {
+	def checkout = Action {
 		Ok("Hello world")
 	}
-	
+
 }
