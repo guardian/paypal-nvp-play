@@ -9,18 +9,23 @@ import configuration.Config
 
 class Paypal extends Controller {
 
+	// Payment token used to tie Paypal requests together.
 	case class Token (token: String)
+	// A parameter in a Paypal NVP request.
 	case class NVPParam (name: String, value: String)
 
+	// Json writers.
 	implicit val tokenWrites = Json.writes[Token]
 	implicit val tokenReads = Json.reads[Token]
 
+	// The parameters sent with every NVP request.
 	private val defaultNVPParams = List(
 		NVPParam("USER", Config.paypalUser),
 		NVPParam("PWD", Config.paypalPassword),
 		NVPParam("SIGNATURE", Config.paypalSignature),
 		NVPParam("VERSION", Config.paypalNVPVersion))
 
+	// Takes a series of parameters, send a request to Paypal, returns response.
 	def NVPRequest (params: List[NVPParam]) = {
 
 		val client = new OkHttpClient()
@@ -38,6 +43,7 @@ class Paypal extends Controller {
 
 	}
 
+	// Takes an NVP response and retrieves a given parameter as a string.
 	def retrieveNVPParam (response: Response, paramName: String) = {
 
 		val responseBody = response.body().string()
@@ -46,6 +52,8 @@ class Paypal extends Controller {
 
 	}
 
+	// Retrieves a payment token from an NVP response, and wraps it in JSON for
+	// sending back to the client.
 	def tokenJsonResponse (response: Response) = {
 
 		val token = Token(retrieveNVPParam(response, "TOKEN"))
@@ -53,6 +61,7 @@ class Paypal extends Controller {
 
 	}
 
+	// Sends a request to Paypal to create billing agreement and returns BAID.
 	def retrieveBaid (token: Token) = {
 
 		val agreementParams = List(
@@ -64,6 +73,7 @@ class Paypal extends Controller {
 
 	}
 
+	// Sets up a payment by contacting Paypal, returns the token as JSON.
 	def setupPayment = Action {
 
 		val paymentParams = List(
@@ -80,6 +90,7 @@ class Paypal extends Controller {
 
 	}
 
+	// Creates a billing agreement using a payment token.
 	def createAgreement = Action { request =>
 
 		request.body.asJson.map { json =>
