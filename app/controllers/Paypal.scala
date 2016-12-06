@@ -30,7 +30,7 @@ class Paypal extends Controller {
 
 	}
 
-	def setupPayment (amount: String, currency: String) = Action {
+	def setupPayment () = Action {
 
 		val client = new OkHttpClient()
 		val requestBody = new FormBody.Builder()
@@ -40,8 +40,8 @@ class Paypal extends Controller {
 			.add("VERSION", Config.paypalNVPVersion)
 			.add("METHOD", "SetExpressCheckout")
 			.add("PAYMENTREQUEST_0_PAYMENTACTION", "SALE")
-			.add("PAYMENTREQUEST_0_AMT", amount)
-			.add("PAYMENTREQUEST_0_CURRENCYCODE", currency)
+			.add("PAYMENTREQUEST_0_AMT", "4.50")
+			.add("PAYMENTREQUEST_0_CURRENCYCODE", "GBP")
 			.add("RETURNURL", "http://localhost:5000/create-agreement")
 			.add("CANCELURL", "http://localhost:5000/cancel")
 			.add("BILLINGTYPE", "MerchantInitiatedBilling")
