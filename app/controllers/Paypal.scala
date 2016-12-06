@@ -53,6 +53,17 @@ class Paypal extends Controller {
 
 	}
 
+	def retrieveBaid (token: Token) = {
+
+		val agreementParams = List(
+			NVPParam("METHOD", "CreateBillingAgreement"),
+			NVPParam("TOKEN", token.token))
+
+		val response = NVPRequest(agreementParams)
+		retrieveNVPParam(response, "BILLINGAGREEMENTID")
+
+	}
+
 	def setupPayment = Action {
 
 		val paymentParams = List(
@@ -71,35 +82,14 @@ class Paypal extends Controller {
 
 	def createAgreement = Action { request =>
 
-		val tokenFromJson = request.body.asJson match {
-			case Some(json) => Json.fromJson[Token](json)
-			case _ => None
-		}
+		request.body.asJson.map { json =>
 
-		tokenFromJson match {
-
-			case JsSuccess(token: Token, _) => {
-
-				val agreementParams = List(
-					NVPParam("METHOD", "CreateBillingAgreement"),
-					NVPParam("TOKEN", token.token))
-
-				val response = NVPRequest(agreementParams)
-				val baid = retrieveNVPParam(response, "BILLINGAGREEMENTID")
-
-				println(baid)
-				Ok
-
+			Json.fromJson[Token](json) match {
+				case JsSuccess(token: Token, _) => Ok(retrieveBaid(token))
+				case e: JsError => BadRequest(JsError.toJson(e).toString)
 			}
 
-			case e: JsError => {
-				println("Errors: " + JsError.toJson(e).toString())
-				BadRequest
-			}
-
-			case _ => BadRequest
-
-		}
+		}.getOrElse(BadRequest)
 
 	}
 
