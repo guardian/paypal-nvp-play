@@ -24,14 +24,14 @@ class Paypal extends Controller {
 	def NVPRequest (params: List[NVPParam]) = {
 
 		val client = new OkHttpClient()
-		val body = new FormBody.Builder()
+		val reqBody = new FormBody.Builder()
 
-		defaultNVPParams.foreach(param => body.add(param.name, param.value))
-		params.foreach(param => body.add(param.name, param.value))
+		defaultNVPParams.foreach(param => reqBody.add(param.name, param.value))
+		params.foreach(param => reqBody.add(param.name, param.value))
 
 		val request = new Request.Builder()
 			.url(Config.paypalSandboxUrl)
-			.post(body.build())
+			.post(reqBody.build())
 			.build()
 
 		client.newCall(request).execute()
@@ -80,25 +80,16 @@ class Paypal extends Controller {
 
 			case JsSuccess(token: Token, _) => {
 
-				val client = new OkHttpClient()
-				val requestBody = new FormBody.Builder()
-					.add("USER", Config.paypalUser)
-					.add("PWD", Config.paypalPassword)
-					.add("SIGNATURE", Config.paypalSignature)
-					.add("VERSION", Config.paypalNVPVersion)
-					.add("METHOD", "CreateBillingAgreement")
-					.add("TOKEN", token.token)
-					.build()
+				val agreementParams = List(
+					NVPParam("METHOD", "CreateBillingAgreement"),
+					NVPParam("TOKEN", token.token))
 
-				val request = new Request.Builder()
-					.url(Config.paypalSandboxUrl)
-					.post(requestBody)
-					.build()
-
-				val response = client.newCall(request).execute()
+				val response = NVPRequest(agreementParams)
 				val baid = retrieveNVPParam(response, "BILLINGAGREEMENTID")
+
 				println(baid)
 				Ok
+
 			}
 
 			case e: JsError => {
