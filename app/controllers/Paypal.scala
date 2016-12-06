@@ -9,14 +9,24 @@ import configuration.Config
 class Paypal extends Controller {
 
 	case class Token (token: String)
+	case class Baid (baid: String)
 
 	implicit val tokenWrites = Json.writes[Token]
+	implicit val baidWrites = Json.writes[Baid]
 
 	def retrieveToken (queryString: String) = {
 
 		val queryParams = parseQuery(queryString)
 		val token = Token(queryParams.paramMap.get("TOKEN").get(0))
 		Json.toJson(token)
+
+	}
+
+	def retrieveBaid (queryString: String) = {
+
+		val queryParams = parseQuery(queryString)
+		val baid = Baid(queryParams.paramMap.get("BILLINGAGREEMENTID").get(0))
+		Json.toJson(baid)
 
 	}
 
@@ -47,6 +57,26 @@ class Paypal extends Controller {
 
 	}
 
-	def createAgreement (token: String) = TODO
+	def createAgreement (token: String) = Action {
+
+		val client = new OkHttpClient()
+		val requestBody = new FormBody.Builder()
+			.add("USER", Config.paypalUser)
+			.add("PWD", Config.paypalPassword)
+			.add("SIGNATURE", Config.paypalSignature)
+			.add("VERSION", Config.paypalNVPVersion)
+			.add("METHOD", "CreateBillingAgreement")
+			.add("TOKEN", token)
+			.build()
+
+		val request = new Request.Builder()
+			.url(Config.paypalSandboxUrl)
+			.post(requestBody)
+			.build()
+
+		val response = client.newCall(request).execute()
+		Ok(retrieveBaid(response.body().string()))
+
+	}
 
 }
