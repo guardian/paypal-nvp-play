@@ -10,24 +10,28 @@ import configuration.Config
 class Paypal extends Controller {
 
 	case class Token (token: String)
+	case class NVPParam (name: String, value: String)
 
 	implicit val tokenWrites = Json.writes[Token]
 	implicit val tokenReads = Json.reads[Token]
 
-	def NVPRequest (params: Map[String, String]) = {
+	private val defaultNVPParams = List(
+		NVPParam("USER", Config.paypalUser),
+		NVPParam("PWD", Config.paypalPassword),
+		NVPParam("SIGNATURE", Config.paypalSignature),
+		NVPParam("VERSION", Config.paypalNVPVersion))
+
+	def NVPRequest (params: List[NVPParam]) = {
 
 		val client = new OkHttpClient()
-		val requestBody = new FormBody.Builder()
-			.add("USER", Config.paypalUser)
-			.add("PWD", Config.paypalPassword)
-			.add("SIGNATURE", Config.paypalSignature)
-			.add("VERSION", Config.paypalNVPVersion)
+		val body = new FormBody.Builder()
 
-		for ((param, value) <- params) requestBody.add(param, value)
+		defaultNVPParams.foreach(param => body.add(param.name, param.value))
+		params.foreach(param => body.add(param.name, param.value))
 
 		val request = new Request.Builder()
 			.url(Config.paypalSandboxUrl)
-			.post(requestBody.build())
+			.post(body.build())
 			.build()
 
 		client.newCall(request).execute()
@@ -51,14 +55,14 @@ class Paypal extends Controller {
 
 	def setupPayment = Action {
 
-		val paymentParams = Map(
-			"METHOD" -> "SetExpressCheckout",
-			"PAYMENTREQUEST_0_PAYMENTACTION" -> "SALE",
-			"PAYMENTREQUEST_0_AMT" -> "4.50",
-			"PAYMENTREQUEST_0_CURRENCYCODE" -> "GBP",
-			"RETURNURL" -> "http://localhost:9000/create-agreement",
-			"CANCELURL" -> "http://localhost:9000/cancel",
-			"BILLINGTYPE" -> "MerchantInitiatedBilling")
+		val paymentParams = List(
+			NVPParam("METHOD", "SetExpressCheckout"),
+			NVPParam("PAYMENTREQUEST_0_PAYMENTACTION", "SALE"),
+			NVPParam("PAYMENTREQUEST_0_AMT", "4.50"),
+			NVPParam("PAYMENTREQUEST_0_CURRENCYCODE", "GBP"),
+			NVPParam("RETURNURL", "http://localhost:9000/create-agreement"),
+			NVPParam("CANCELURL", "http://localhost:9000/cancel"),
+			NVPParam("BILLINGTYPE", "MerchantInitiatedBilling"))
 
 		val response = NVPRequest(paymentParams)
 		Ok(tokenJsonResponse(response))
