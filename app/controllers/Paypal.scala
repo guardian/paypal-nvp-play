@@ -1,7 +1,8 @@
 package controllers
 
 import play.api.mvc.{Controller, Action}
-import play.api.libs.json.Json
+import play.api.mvc.Results.BadRequest
+import play.api.libs.json.{Json, JsSuccess, JsError}
 import okhttp3.{OkHttpClient, FormBody, Request}
 import com.netaporter.uri.Uri.parseQuery
 import configuration.Config
@@ -9,10 +10,9 @@ import configuration.Config
 class Paypal extends Controller {
 
 	case class Token (token: String)
-	case class Baid (baid: String)
 
 	implicit val tokenWrites = Json.writes[Token]
-	implicit val baidWrites = Json.writes[Baid]
+	implicit val tokenReads = Json.reads[Token]
 
 	def retrieveToken (queryString: String) = {
 
@@ -25,12 +25,11 @@ class Paypal extends Controller {
 	def retrieveBaid (queryString: String) = {
 
 		val queryParams = parseQuery(queryString)
-		val baid = Baid(queryParams.paramMap.get("BILLINGAGREEMENTID").get(0))
-		Json.toJson(baid)
+		queryParams.paramMap.get("BILLINGAGREEMENTID").get(0)
 
 	}
 
-	def setupPayment () = Action {
+	def setupPayment = Action {
 
 		val client = new OkHttpClient()
 		val requestBody = new FormBody.Builder()
@@ -42,8 +41,8 @@ class Paypal extends Controller {
 			.add("PAYMENTREQUEST_0_PAYMENTACTION", "SALE")
 			.add("PAYMENTREQUEST_0_AMT", "4.50")
 			.add("PAYMENTREQUEST_0_CURRENCYCODE", "GBP")
-			.add("RETURNURL", "http://localhost:5000/create-agreement")
-			.add("CANCELURL", "http://localhost:5000/cancel")
+			.add("RETURNURL", "http://localhost:9000/create-agreement")
+			.add("CANCELURL", "http://localhost:9000/cancel")
 			.add("BILLINGTYPE", "MerchantInitiatedBilling")
 			.build()
 
@@ -57,25 +56,46 @@ class Paypal extends Controller {
 
 	}
 
-	def createAgreement (token: String) = Action {
+	def createAgreement = Action { request =>
 
-		val client = new OkHttpClient()
-		val requestBody = new FormBody.Builder()
-			.add("USER", Config.paypalUser)
-			.add("PWD", Config.paypalPassword)
-			.add("SIGNATURE", Config.paypalSignature)
-			.add("VERSION", Config.paypalNVPVersion)
-			.add("METHOD", "CreateBillingAgreement")
-			.add("TOKEN", token)
-			.build()
+		val tokenFromJson = request.body.asJson match {
+			case Some(json) => Json.fromJson[Token](json)
+			case _ => None
+		}
 
-		val request = new Request.Builder()
-			.url(Config.paypalSandboxUrl)
-			.post(requestBody)
-			.build()
+		tokenFromJson match {
 
-		val response = client.newCall(request).execute()
-		Ok(retrieveBaid(response.body().string()))
+			case JsSuccess(token: Token, _) => {
+
+				val client = new OkHttpClient()
+				val requestBody = new FormBody.Builder()
+					.add("USER", Config.paypalUser)
+					.add("PWD", Config.paypalPassword)
+					.add("SIGNATURE", Config.paypalSignature)
+					.add("VERSION", Config.paypalNVPVersion)
+					.add("METHOD", "CreateBillingAgreement")
+					.add("TOKEN", token.token)
+					.build()
+
+				val request = new Request.Builder()
+					.url(Config.paypalSandboxUrl)
+					.post(requestBody)
+					.build()
+
+				val response = client.newCall(request).execute()
+				val baid = retrieveBaid(response.body().string())
+				println(baid)
+				Ok
+			}
+
+			case e: JsError => {
+				println("Errors: " + JsError.toJson(e).toString())
+				BadRequest
+			}
+
+			case _ => BadRequest
+
+		}
 
 	}
 

@@ -7,4 +7,4 @@ GET    /assets/*file    controllers.Assets.at(path="/public", file)
 # ----- Paypal ----- #
 
 POST    /setup-payment    controllers.Paypal.setupPayment
-POST    /create-agreement    controllers.Paypal.createAgreement(token)
+POST    /create-agreement    controllers.Paypal.createAgreement

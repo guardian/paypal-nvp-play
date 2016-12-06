@@ -29,11 +29,9 @@ export function init () {
 				method: 'POST',
 				body: JSON.stringify({ token: data.paymentToken })
 			}).then(response => {
-				return response.json();
-			}).then(baid_data => {
-				alert(`Your BAID: ${baid_data.baid}`);
+				console.log(response);
 			}).catch(err => {
-				alert('Uh oh!');
+				alert(err);
 			});
 
 	   }
