@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "sass": "sass --update app/assets/stylesheets:public/stylesheets",
-    "webpack": "webpack --config webpack.conf.js"
+    "webpack": "webpack --config webpack.conf.js",
+    "build": "npm run sass && npm run webpack"
   },
   "author": "Ap0c",
   "license": "ISC",
