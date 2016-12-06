@@ -1,13 +1,26 @@
 package controllers
 
 import play.api.mvc.{Controller, Action}
+import play.api.libs.json.Json
 import okhttp3.{OkHttpClient, FormBody, Request}
+import com.netaporter.uri.Uri.parseQuery
 import configuration.Config
 
 class Paypal extends Controller {
 
-	def setupPayment (amount: String,
-		currency: String) = Action {
+	case class Token (token: String)
+
+	implicit val tokenWrites = Json.writes[Token]
+
+	def retrieveToken (queryString: String) = {
+
+		val queryParams = parseQuery(queryString)
+		val token = Token(queryParams.paramMap.get("TOKEN").get(0))
+		Json.toJson(token)
+
+	}
+
+	def setupPayment (amount: String, currency: String) = Action {
 
 		val client = new OkHttpClient()
 		val requestBody = new FormBody.Builder()
@@ -30,7 +43,7 @@ class Paypal extends Controller {
 			.build()
 
 		val response = client.newCall(request).execute()
-		Ok(response.body())
+		Ok(retrieveToken(response.body().string()))
 
 	}
 
