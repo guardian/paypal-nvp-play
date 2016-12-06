@@ -3,7 +3,7 @@ package controllers
 import play.api.mvc.{Controller, Action}
 import play.api.mvc.Results.BadRequest
 import play.api.libs.json.{Json, JsSuccess, JsError}
-import okhttp3.{OkHttpClient, FormBody, Request}
+import okhttp3.{OkHttpClient, FormBody, Request, Response}
 import com.netaporter.uri.Uri.parseQuery
 import configuration.Config
 
@@ -14,18 +14,18 @@ class Paypal extends Controller {
 	implicit val tokenWrites = Json.writes[Token]
 	implicit val tokenReads = Json.reads[Token]
 
-	def retrieveToken (queryString: String) = {
+	def retrieveNVPParam (response: Response, paramName: String) = {
 
-		val queryParams = parseQuery(queryString)
-		val token = Token(queryParams.paramMap.get("TOKEN").get(0))
-		Json.toJson(token)
+		val responseBody = response.body().string()
+		val queryParams = parseQuery(responseBody)
+		queryParams.paramMap.get(paramName).get(0)
 
 	}
 
-	def retrieveBaid (queryString: String) = {
+	def tokenJsonResponse (response: Response) = {
 
-		val queryParams = parseQuery(queryString)
-		queryParams.paramMap.get("BILLINGAGREEMENTID").get(0)
+		val token = Token(retrieveNVPParam(response, "TOKEN"))
+		Json.toJson(token)
 
 	}
 
@@ -52,7 +52,7 @@ class Paypal extends Controller {
 			.build()
 
 		val response = client.newCall(request).execute()
-		Ok(retrieveToken(response.body().string()))
+		Ok(tokenJsonResponse(response))
 
 	}
 
@@ -83,7 +83,7 @@ class Paypal extends Controller {
 					.build()
 
 				val response = client.newCall(request).execute()
-				val baid = retrieveBaid(response.body().string())
+				val baid = retrieveNVPParam(response, "BILLINGAGREEMENTID")
 				println(baid)
 				Ok
 			}
