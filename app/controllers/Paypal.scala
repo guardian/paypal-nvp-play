@@ -14,6 +14,26 @@ class Paypal extends Controller {
 	implicit val tokenWrites = Json.writes[Token]
 	implicit val tokenReads = Json.reads[Token]
 
+	def NVPRequest (params: Map[String, String]) = {
+
+		val client = new OkHttpClient()
+		val requestBody = new FormBody.Builder()
+			.add("USER", Config.paypalUser)
+			.add("PWD", Config.paypalPassword)
+			.add("SIGNATURE", Config.paypalSignature)
+			.add("VERSION", Config.paypalNVPVersion)
+
+		for ((param, value) <- params) requestBody.add(param, value)
+
+		val request = new Request.Builder()
+			.url(Config.paypalSandboxUrl)
+			.post(requestBody.build())
+			.build()
+
+		client.newCall(request).execute()
+
+	}
+
 	def retrieveNVPParam (response: Response, paramName: String) = {
 
 		val responseBody = response.body().string()
@@ -31,27 +51,16 @@ class Paypal extends Controller {
 
 	def setupPayment = Action {
 
-		val client = new OkHttpClient()
-		val requestBody = new FormBody.Builder()
-			.add("USER", Config.paypalUser)
-			.add("PWD", Config.paypalPassword)
-			.add("SIGNATURE", Config.paypalSignature)
-			.add("VERSION", Config.paypalNVPVersion)
-			.add("METHOD", "SetExpressCheckout")
-			.add("PAYMENTREQUEST_0_PAYMENTACTION", "SALE")
-			.add("PAYMENTREQUEST_0_AMT", "4.50")
-			.add("PAYMENTREQUEST_0_CURRENCYCODE", "GBP")
-			.add("RETURNURL", "http://localhost:9000/create-agreement")
-			.add("CANCELURL", "http://localhost:9000/cancel")
-			.add("BILLINGTYPE", "MerchantInitiatedBilling")
-			.build()
+		val paymentParams = Map(
+			"METHOD" -> "SetExpressCheckout",
+			"PAYMENTREQUEST_0_PAYMENTACTION" -> "SALE",
+			"PAYMENTREQUEST_0_AMT" -> "4.50",
+			"PAYMENTREQUEST_0_CURRENCYCODE" -> "GBP",
+			"RETURNURL" -> "http://localhost:9000/create-agreement",
+			"CANCELURL" -> "http://localhost:9000/cancel",
+			"BILLINGTYPE" -> "MerchantInitiatedBilling")
 
-		val request = new Request.Builder()
-			.url(Config.paypalSandboxUrl)
-			.post(requestBody)
-			.build()
-
-		val response = client.newCall(request).execute()
+		val response = NVPRequest(paymentParams)
 		Ok(tokenJsonResponse(response))
 
 	}
